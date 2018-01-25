@@ -4,6 +4,7 @@ using NSubstitute;
 using NUnit.Framework;
 using VisualStudio.Files.Abstractions;
 using VisualStudio.Files.Core.Factories;
+using VisualStudio.Files.Core.Readers;
 using VisualStudio.Files.Core.Wrappers;
 using WrapThat.SystemIO;
 
@@ -41,10 +42,12 @@ namespace VisualStudio.Files.Core.Tests.Factories
         public void CreateMustCreateInstanceOfISolution()
         {
             var ioSubstitute = Substitute.For<ISystemIO>();
-            var readerSubstitute = Substitute.For<IPackageReferenceFileReader>();
+            var packageReferenceFileReaderSubstitute = Substitute.For<IPackageReferenceFileReader>();
+            var runSettingsFileReaderSubstitute = Substitute.For<IRunSettingsFileReader>();
             
             _serviceProviderSubstitute.GetService<ISystemIO>().Returns(ioSubstitute);
-            _serviceProviderSubstitute.GetService<IPackageReferenceFileReader>().Returns(readerSubstitute);
+            _serviceProviderSubstitute.GetService<IPackageReferenceFileReader>().Returns(packageReferenceFileReaderSubstitute);
+            _serviceProviderSubstitute.GetService<IRunSettingsFileReader>().Returns(runSettingsFileReaderSubstitute);
 
             var projectInSolutionSubstitute = Substitute.For<IProjectInSolution>();
             projectInSolutionSubstitute.AbsolutePath.Returns(@"c:\some\random\path.txt");

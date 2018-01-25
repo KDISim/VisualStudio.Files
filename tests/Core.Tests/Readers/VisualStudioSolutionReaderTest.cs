@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 using NUnit.Framework;
 using VisualStudio.Files.Abstractions;
@@ -9,7 +8,7 @@ using VisualStudio.Files.Core.Parsers;
 using VisualStudio.Files.Core.Readers;
 using WrapThat.SystemIO;
 
-namespace VisualStudio.Files.Core.Tests.Loaders
+namespace VisualStudio.Files.Core.Tests.Readers
 {
     [TestFixture]
     public class VisualStudioSolutionTest

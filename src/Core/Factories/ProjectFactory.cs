@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.Extensions.DependencyInjection;
 using VisualStudio.Files.Abstractions;
+using VisualStudio.Files.Core.Readers;
 using WrapThat.SystemIO;
 using IProjectInSolution = VisualStudio.Files.Core.Wrappers.IProjectInSolution;
 
@@ -18,8 +19,10 @@ namespace VisualStudio.Files.Core.Factories
         public IProject Create(IProjectInSolution projectInSolution)
         {
             var io = _serviceProvider.GetService<ISystemIO>();
-            var reader = _serviceProvider.GetService<IPackageReferenceFileReader>();
-            return new Project(projectInSolution, io, reader);
+            var packageReferenceFileReader = _serviceProvider.GetService<IPackageReferenceFileReader>();
+            var runsettingsFileReader = _serviceProvider.GetService<IRunSettingsFileReader>();
+            
+            return new Project(projectInSolution, io, packageReferenceFileReader, runsettingsFileReader);
         }
     }
 }

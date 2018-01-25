@@ -17,6 +17,7 @@ namespace VisualStudio.Files.Core
                 .AddScoped<ISystemIO>(provider => new SystemIO())
                 .AddScoped<ISolutionFileParser, SolutionFileParser>()
                 .AddScoped<IPackageReferenceFileReader, PackageReferenceFileReader>()
+                .AddScoped<IRunSettingsFileReader, RunSettingsFileReader>()
                 .AddScoped<IProjectFactory, ProjectFactory>()
                 .AddScoped<ISolutionFactory, SolutionFactory>()
                 .AddScoped<ISolutionReader, SolutionReader>();

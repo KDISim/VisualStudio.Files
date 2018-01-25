@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- File name extension must be .runsettings -->
+<RunSettings>
+    <NUnit>
+        <DefaultTimeout>60000</DefaultTimeout> <!-- 1 minute timeout -->
+    </NUnit>
+</RunSettings>

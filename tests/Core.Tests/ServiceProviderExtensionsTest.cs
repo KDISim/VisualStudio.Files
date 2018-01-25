@@ -5,6 +5,7 @@ using NUnit.Framework;
 using VisualStudio.Files.Abstractions;
 using VisualStudio.Files.Core.Factories;
 using VisualStudio.Files.Core.Parsers;
+using VisualStudio.Files.Core.Readers;
 using WrapThat.SystemIO;
 
 namespace VisualStudio.Files.Core.Tests
@@ -21,15 +22,6 @@ namespace VisualStudio.Files.Core.Tests
             collection.AddVisualStudioFiles();
             _provider = collection.BuildServiceProvider();
         }
-        
-        /*
-            .AddScoped<ISystemIO>(provider => new SystemIO())
-            .AddScoped<ISolutionFileParser, SolutionFileParser>()
-            .AddScoped<IPackageReferenceFileReader, PackageReferenceFileReader>()
-            .AddScoped<IProjectFactory, ProjectFactory>()
-            .AddScoped<ISolutionFactory, SolutionFactory>()
-            .AddScoped<ISolutionReader>(SolutionReaderFactory.Create);
-        */
 
         [Test]
         public void MustBeAbleToConstructISystemIoInstance()
@@ -49,6 +41,13 @@ namespace VisualStudio.Files.Core.Tests
         public void MustBeAbleToConstructIPackageReferenceFileReaderInstance()
         {
             var instance = _provider.GetService<IPackageReferenceFileReader>();
+            Assert.That(instance, Is.Not.Null);
+        }
+        
+        [Test]
+        public void MustBeAbleToConstructRunSettingsFileReaderInstance()
+        {
+            var instance = _provider.GetService<IRunSettingsFileReader>();
             Assert.That(instance, Is.Not.Null);
         }
         
