@@ -1,0 +1,13 @@
+// Only the target frameworks that are used in projects.
+framework: auto-detect
+
+source https://www.nuget.org/api/v2
+nuget DotNet.Glob 1.6.9
+nuget Microsoft.Build 15.5.180
+nuget Microsoft.Extensions.DependencyInjection 2.0.0
+nuget Microsoft.NET.Test.Sdk 15.3.0
+nuget NSubstitute 3.1.0
+nuget NuGet.Core 2.14.0
+nuget NUnit 3.9.0
+nuget NUnit3TestAdapter 3.9.0
+nuget WrapThat.System 1.0.0
