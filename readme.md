@@ -2,3 +2,23 @@ This library uses [Microsoft.Build](1) to load solution files and projects that 
 
 [1]: https://www.nuget.org/packages/Microsoft.Build/
 [2]: https://www.nuget.org/packages/NuGet.Core/
+
+
+# Usage
+## Using ServiceCollection
+```C#
+var collection = new ServiceCollection();
+collection.AddVisualStudioFiles();
+            
+var provider = collection.BuildServiceProvider();
+
+.....
+var reader = provider.GetService<ISolutionReader>();
+var solution = reader.ReadFromFile("....");
+```
+
+## Using SolutionReaderFactory
+```C#
+var reader = SolutionReaderFactory.Create();
+var solution = reader.ReadFromFile("....");
+```
