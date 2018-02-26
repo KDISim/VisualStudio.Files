@@ -4,5 +4,6 @@
     <TargetFramework>net461</TargetFramework>
     <AssemblyName>VisualStudio.Files.Abstractions</AssemblyName>
     <RootNamespace>VisualStudio.Files.Abstractions</RootNamespace>
+    <PackageProjectUrl>https://github.com/KDISim/VisualStudio.Files</PackageProjectUrl>
   </PropertyGroup>
 </Project>

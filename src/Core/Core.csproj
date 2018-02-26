@@ -4,6 +4,7 @@
     <TargetFramework>net461</TargetFramework>
     <AssemblyName>VisualStudio.Files.Core</AssemblyName>
     <RootNamespace>VisualStudio.Files.Core</RootNamespace>
+    <PackageProjectUrl>https://github.com/KDISim/VisualStudio.Files</PackageProjectUrl>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="DotNet.Glob" Version="1.6.9" />
