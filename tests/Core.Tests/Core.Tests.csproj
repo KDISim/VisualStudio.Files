@@ -15,9 +15,6 @@
     <ProjectReference Include="..\..\src\Core\Core.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Parsers" />
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="RunSettings\TestData\Empty.runsettings">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

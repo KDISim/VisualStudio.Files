@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Build.Construction;
 
 namespace VisualStudio.Files.Core.Wrappers

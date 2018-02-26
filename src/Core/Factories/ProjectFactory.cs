@@ -19,10 +19,9 @@ namespace VisualStudio.Files.Core.Factories
         public IProject Create(IProjectInSolution projectInSolution)
         {
             var io = _serviceProvider.GetService<ISystemIO>();
-            var packageReferenceFileReader = _serviceProvider.GetService<IPackageReferenceFileReader>();
             var runsettingsFileReader = _serviceProvider.GetService<IRunSettingsFileReader>();
             
-            return new Project(projectInSolution, io, packageReferenceFileReader, runsettingsFileReader);
+            return new Project(projectInSolution, io, runsettingsFileReader);
         }
     }
 }

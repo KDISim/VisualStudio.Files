@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.Extensions.DependencyInjection;
+using System.Runtime.InteropServices;
+using System.Xml.Linq;
 using VisualStudio.Files.Abstractions;
 using VisualStudio.Files.Abstractions.RunSettings;
 using VisualStudio.Files.Core.Readers;
@@ -13,13 +14,12 @@ namespace VisualStudio.Files.Core
 {
     internal class Project : IProject
     {
-        private static readonly IEnumerable<IPackageReference> NoReferences = new List<IPackageReference>();
         private readonly FileInfo _projectFileInfo;
         private readonly ISystemIO _io;
-        private readonly IPackageReferenceFileReader _packageReferenceFileReader;
         private readonly IRunSettingsFileReader _runSettingsFileReader;
+        private readonly XElement _xmlRoot;
         
-        internal Project(IProjectInSolution projectInSolution, ISystemIO io, IPackageReferenceFileReader packageReferenceFileReader, IRunSettingsFileReader runSettingsFileReader)
+        internal Project(IProjectInSolution projectInSolution, ISystemIO io, IRunSettingsFileReader runSettingsFileReader)
         {
             if (projectInSolution == null)
             {
@@ -27,18 +27,38 @@ namespace VisualStudio.Files.Core
             }
 
             _io = io ?? throw new ArgumentNullException(nameof(io));
-            _packageReferenceFileReader = packageReferenceFileReader ?? throw new ArgumentNullException(nameof(packageReferenceFileReader));
             _runSettingsFileReader =
                 runSettingsFileReader ?? throw new ArgumentNullException(nameof(runSettingsFileReader));
 
             _projectFileInfo = new FileInfo(projectInSolution.AbsolutePath);
+            
+            var content = _io.File.ReadAllText(_projectFileInfo.FullName);
+            _xmlRoot = XElement.Parse(content);
         }
         
         public DirectoryInfo Directory => _projectFileInfo.Directory;
         public FileInfo File => _projectFileInfo;
-        public IEnumerable<IPackageReference> Packages => LoadPackageReferences();
+        
+        public XElement XmlRoot => _xmlRoot;
+        
+        
+        public IOutputPath GetOutputPath(string configuration, string platform)
+        {
+            var properties = LoadProperties(configuration, platform);
+
+            var outputPathProperty = properties.SingleOrDefault(e => e.Name.Equals("OutputPath"));
+
+            if (outputPathProperty == null)
+            {
+                throw new InvalidOperationException($"outputpath not found for configuration: {configuration} and platform: {platform}");    
+            }
+
+            var outputPath = ReplaceVars(outputPathProperty.Value, properties);
+            
+            return new OutputPath(platform, configuration, outputPath);
+        }
+
         public IEnumerable<IRunSettingsFile> RunSettings => LoadRunSettings();
-        public bool HasPackageReferenceFile => PackagesConfigFileExists();
         
         private IEnumerable<IRunSettingsFile> LoadRunSettings()
         {
@@ -46,33 +66,46 @@ namespace VisualStudio.Files.Core
                 .EnumerateFiles("*.runsettings", SearchOption.AllDirectories)
                 .Select(file => _runSettingsFileReader.ReadFromFile(file.FullName));
         }
-        
-        private IEnumerable<IPackageReference> LoadPackageReferences()
+
+        private string ReplaceVars(string value, IEnumerable<IProperty> properties)
         {
-            if (HasPackageReferenceFile)
+            var replaced = value;
+            foreach (var property in properties)
             {
-                var path = GetPackagesConfigPath();
-                var file = _packageReferenceFileReader.ReadFromFile(path);
-
-                return file.PackageReferences;
+                replaced = replaced.Replace($"$({property.Name})", property.Value);
             }
-            else
+
+            return replaced;
+        }
+
+        private IEnumerable<IProperty> LoadProperties(string configuration, string platform)
+        {
+            var propertyGroups = _xmlRoot.Descendants()
+                .Where(x => x.Name.LocalName.Equals("PropertyGroup"));
+
+            var propertyGroupsInScope = propertyGroups
+                .Where(p =>
+                {
+                    var attributes = p.Attributes();
+                    var condition = attributes.FirstOrDefault(a => a.Name.LocalName.Equals("Condition"));
+
+                    if (condition == null)
+                    {
+                        return true;
+                    }
+
+                    return
+                        condition.Value.ToLower().Contains(configuration.ToLower()) &&
+                        condition.Value.ToLower().Contains(platform.ToLower());
+                });
+
+            foreach (var group in propertyGroupsInScope)
             {
-                return NoReferences;
+                foreach (var property in group.Descendants())
+                {
+                    yield return new Property(property.Name.LocalName, property.Value);
+                }
             }
         }
-
-        private bool PackagesConfigFileExists()
-        {
-            var path = GetPackagesConfigPath();
-
-            return _io.File.Exists(path);
-        }
-
-        private string GetPackagesConfigPath()
-        {
-            return Path.Combine(Directory.FullName, "packages.config");
-        }
-       
     }
 }

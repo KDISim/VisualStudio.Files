@@ -38,13 +38,6 @@ namespace VisualStudio.Files.Core.Tests
         }
         
         [Test]
-        public void MustBeAbleToConstructIPackageReferenceFileReaderInstance()
-        {
-            var instance = _provider.GetService<IPackageReferenceFileReader>();
-            Assert.That(instance, Is.Not.Null);
-        }
-        
-        [Test]
         public void MustBeAbleToConstructRunSettingsFileReaderInstance()
         {
             var instance = _provider.GetService<IRunSettingsFileReader>();
