@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Xml.Linq;
@@ -14,6 +15,12 @@ namespace VisualStudio.Files.Core.Tests
     [TestFixture]
     public class ProjectTest
     {
+        private const string DefaultProjectDirectory = @"c:\repos\root\some\project\";
+        private const string DefaultProjectFile = "file.csproj";
+
+        private static readonly string DefaultProjectFilePath =
+            Path.Combine(DefaultProjectDirectory, DefaultProjectFile);
+        
         private IProjectInSolution _projectInSolutionSubstitute;
         private ISystemIO _ioSubstitute;
         private IRunSettingsFileReader _runSettingsFileReaderSubstitute;
@@ -35,7 +42,7 @@ namespace VisualStudio.Files.Core.Tests
             _ioSubstitute = Substitute.For<ISystemIO>();
             _runSettingsFileReaderSubstitute = Substitute.For<IRunSettingsFileReader>();
             
-            _projectInSolutionSubstitute.AbsolutePath.Returns(@"c:\some\project\file.csproj");
+            _projectInSolutionSubstitute.AbsolutePath.Returns(DefaultProjectFilePath);
         }
         
         [Test]
@@ -49,6 +56,8 @@ namespace VisualStudio.Files.Core.Tests
         [Test]
         public void ConstructorMustThrowArgumentNullExceptionWhenIoIsNull()
         {
+            StubProjectFileContent(ProjectFiles.Empty);
+            
             var exception = Assert.Throws<ArgumentNullException>(() =>
                 new Project(_projectInSolutionSubstitute, null, _runSettingsFileReaderSubstitute));
             Assert.That(exception.Message, Contains.Substring("io"));
@@ -57,97 +66,94 @@ namespace VisualStudio.Files.Core.Tests
         [Test]
         public void ConstructorMustThrowArgumentNullExceptionWhenRunSettingsFileReaderIsNull()
         {
+            StubProjectFileContent(ProjectFiles.Empty);
+            
             var exception = Assert.Throws<ArgumentNullException>(() =>
                 new Project(_projectInSolutionSubstitute, _ioSubstitute, null));
             Assert.That(exception.Message, Contains.Substring("runSettingsFileReader"));
         }
-        
-        [Test]
-        public void ConstructorMustSetXmlRoot()
-        {
-            StubProjectFileContent(ProjectFiles.Empty);
-            var expectedXml = XElement.Parse(ProjectFiles.Empty);
-            var project = Create();
-            
-            Assert.Multiple(() => {
-                Assert.That(project.XmlRoot, Is.Not.Null);
-                Assert.That(project.XmlRoot.ToString(), Is.EqualTo(expectedXml.ToString()));
-            });
 
-        }
-        
+        /*
         [Test]
-        public void OutputPathsMustThrowInvallidOperationExceptionWhenProjectFileIsEmpty()
+        public void TryGetPropertyMustReturnFalseWhenProjectFileIsEmpty()
         {
             StubProjectFileContent(ProjectFiles.Empty);
             var project = Create();
             
-            Assert.Throws<InvalidOperationException>(() => project.GetOutputPath("something", "something"));
+            var result = project.TryGetProperty()
         }
+        */
         
         [Test]
-        public void OutputPathsMustThrowInvallidOperationExceptionWhenConfigutationAndPlatfromAreNotInProjectFile()
+        public void TryGetOutputMustReturnFalseWhenProjectFileIsEmpty()
         {
             StubProjectFileContent(ProjectFiles.Empty);
             var project = Create();
+
+            var result = project.TryGetOutputDirectory("something", "something", out DirectoryInfo actual);
             
-            Assert.Throws<InvalidOperationException>(() => project.GetOutputPath("something", "something"));
+            Assert.That(result, Is.False);
         }
         
         [Test]
-        public void OutputPathsMustReturnOutputPathWhenProjectContainsOneOutputPathWithVars()
+        public void TryGetOutputDirectoryMustReturnFalseWhenConfigutationAndPlatfromAreNotInProjectFile()
         {
             StubProjectFileContent(ProjectFiles.WithSingleOutputPathWithVars);
             var project = Create();
 
-            var expectedConfiguration = "debug";
-            var expectedPlatform = "x86";
-            var expectedPath = "..\\..\\..\\bin\\x86d\\";
-
-            var actual = project.GetOutputPath(expectedConfiguration, expectedPlatform);
+            var result = project.TryGetOutputDirectory("something", "something", out DirectoryInfo actual);
             
+            Assert.That(result, Is.False);
+        }
+        
+        [Test]
+        public void TryGetOutputDirectoryMustReturnOutputPathWhenProjectContainsOneOutputPathWithVars()
+        {
+            
+            StubProjectFileContent(ProjectFiles.WithSingleOutputPathWithVars);
+            var project = Create();
+            var expectedPath = Path.Combine(DefaultProjectDirectory, @"..\..\bin\x86d\");
+            var expectedDirectory = new DirectoryInfo(expectedPath);
+
+            var result = project.TryGetOutputDirectory("debug", "x86", out DirectoryInfo actual);
+            
+            Assert.That(result, Is.True);
             Assert.That(actual, Is.Not.Null);
-            Assert.That(actual.Path, Is.EqualTo(expectedPath));
-            Assert.That(actual.Configuration, Is.EqualTo(expectedConfiguration));
-            Assert.That(actual.Platform, Is.EqualTo(expectedPlatform));
+            Assert.That(actual.FullName, Is.EqualTo(expectedDirectory.FullName));
 
         }
         
         [Test]
-        public void OutputPathsMustReturnOutputPathWhenProjectContainsOneOutputPathWithoutVars()
+        public void TryGetOutputDirectoryMustReturnOutputPathWhenProjectContainsOneOutputPathWithoutVars()
         {
             StubProjectFileContent(ProjectFiles.WithSingleOutputPathWithoutVars);
             var project = Create();
-
-            var expectedConfiguration = "debug";
-            var expectedPlatform = "x86";
-            var expectedPath = "..\\..\\..\\bin\\x86d\\";
-
-            var actual = project.GetOutputPath(expectedConfiguration, expectedPlatform);
             
+            var expectedPath = Path.Combine(DefaultProjectDirectory, @"..\..\bin\x86d\");
+            var expectedDirectory = new DirectoryInfo(expectedPath);
+
+            var result = project.TryGetOutputDirectory("debug", "x86", out DirectoryInfo actual);
+            
+            Assert.That(result, Is.True);
             Assert.That(actual, Is.Not.Null);
-            Assert.That(actual.Path, Is.EqualTo(expectedPath));
-            Assert.That(actual.Configuration, Is.EqualTo(expectedConfiguration));
-            Assert.That(actual.Platform, Is.EqualTo(expectedPlatform));
+            Assert.That(actual.FullName, Is.EqualTo(expectedDirectory.FullName));
 
         }
         
         [Test]
-        public void OutputPathsMustReturnOutputPathWhenProjectContainsMultipleOutPuthPathWithVars()
+        public void TryGetOutputDirectoryMustReturnOutputPathWhenProjectContainsMultipleOutPuthPathWithVars()
         {
             StubProjectFileContent(ProjectFiles.WithMultipleOutputPathsWithVars);
             var project = Create();
-
-            var expectedConfiguration = "release";
-            var expectedPlatform = "x64";
-            var expectedPath = "..\\..\\..\\bin\\x64\\";
-
-            var actual = project.GetOutputPath(expectedConfiguration, expectedPlatform);
             
+            var expectedPath = Path.Combine(DefaultProjectDirectory, @"..\..\bin\x64\");
+            var expectedDirectory = new DirectoryInfo(expectedPath);
+
+            var result = project.TryGetOutputDirectory("release", "x64", out DirectoryInfo actual);
+            
+            Assert.That(result, Is.True);
             Assert.That(actual, Is.Not.Null);
-            Assert.That(actual.Path, Is.EqualTo(expectedPath));
-            Assert.That(actual.Configuration, Is.EqualTo(expectedConfiguration));
-            Assert.That(actual.Platform, Is.EqualTo(expectedPlatform));
+            Assert.That(actual.FullName, Is.EqualTo(expectedDirectory.FullName));
 
         }
     }

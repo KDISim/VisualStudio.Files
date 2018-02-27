@@ -8,9 +8,10 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="DotNet.Glob" Version="1.6.9" />
-    <PackageReference Include="Microsoft.Build" Version="15.5.180" />
+    <PackageReference Include="Microsoft.Build" Version="15.6.82" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.0.0" />
     <PackageReference Include="WrapThat.System" Version="1.0.0" />
+    <PackageReference Include="System.Threading.Tasks.Dataflow" Version="4.6.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Abstractions\Abstractions.csproj" />
